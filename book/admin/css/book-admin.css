@@ -1,0 +1,35 @@
+/**
+ * All of the CSS for your admin-specific functionality should be
+ * included in this file.
+ */
+
+ .book-meta-box-wrapper {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 10px;
+}
+
+.book-meta-box-wrapper p {
+    display: contents;
+}
+
+.book-meta-box-wrapper label {
+    font-weight: bold;
+    align-self: center;
+}
+
+.book-meta-box-wrapper input[type="text"],
+.book-meta-box-wrapper input[type="url"] {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.book-meta-box-wrapper input[type="text"]:focus,
+.book-meta-box-wrapper input[type="url"]:focus {
+    border-color: #0073aa;
+    box-shadow: 0 0 5px rgba(0, 115, 170, 0.5);
+    outline: none;
+}
