@@ -124,6 +124,9 @@ class Book {
 
 		require_once plugin_dir_path(__FILE__) . 'class-book-meta-database.php';
 
+		require_once plugin_dir_path(__FILE__) . 'class-book-settings.php';
+		require_once plugin_dir_path(__FILE__) . 'class-book-shortcode.php';
+
 		$this->loader = new Book_Loader();
 
 	}
@@ -156,6 +159,8 @@ class Book {
 
 		$plugin_admin = new Book_Admin( $this->get_plugin_name(), $this->get_version() );
 		$plugin_admin_database = new Book_Meta_Database( $this->get_plugin_name(), $this->get_version() );
+		$plugin_book_setting = new Book_Settings( $this->get_plugin_name(), $this->get_version() );
+		$plugin_book_shortcode = new Book_Shortcode( $this->get_plugin_name(), $this->get_version() );
 
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
@@ -163,6 +168,9 @@ class Book {
 		$this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'book_meta_boxes' );
 		$this->loader->add_action( 'save_post', $plugin_admin, 'save_meta_box_data' );
 		$this->loader->add_action( 'init', $plugin_admin_database, 'register_book_meta_table' );
+		$this->loader->add_action( 'admin_menu', $plugin_book_setting, 'add_settings_page' );
+		$this->loader->add_action( 'admin_init', $plugin_book_setting, 'register_settings' );
+		$this->loader->add_shortcode( 'book_info', $plugin_book_shortcode, 'render_book_shortcode' );
 	}
 
 	/**

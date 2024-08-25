@@ -1,5 +1,5 @@
 <?php
-
+//require_once plugin_dir_path(__FILE__) . '../includes/class-book-meta-database.php';
 /**
  * The admin-specific functionality of the plugin.
  *
@@ -100,6 +100,7 @@ class Book_Admin {
 
 	}
 
+	
 	public function create_book_post_type() {
 		$labels = array(
 			'name'               => _x( 'Books', 'post type general name', 'book' ),
@@ -218,83 +219,98 @@ class Book_Admin {
 		// Use nonce for verification
 		wp_nonce_field( 'book_save_meta_box_data', 'book_meta_box_nonce' );
 	
-		// Retrieve existing values from the database
-		$author = get_post_meta( $post->ID, '_book_author', true );
-		$price = get_post_meta( $post->ID, '_book_price', true );
-		$publisher = get_post_meta( $post->ID, '_book_publisher', true );
-		$year = get_post_meta( $post->ID, '_book_year', true );
-		$edition = get_post_meta( $post->ID, '_book_edition', true );
-		$url = get_post_meta( $post->ID, '_book_url', true );
+		//Retrieve existing values from the database
+		$book_meta_db = new Book_Meta_Database();
+		$author = $book_meta_db->get_book_meta( $post->ID, 'author_name' );
+		$price = $book_meta_db->get_book_meta( $post->ID, 'price' );
+		$publisher = $book_meta_db->get_book_meta( $post->ID, 'publisher' );
+		$year = $book_meta_db->get_book_meta( $post->ID, 'year' );
+		$edition = $book_meta_db->get_book_meta( $post->ID, 'edition' );
+		$url = $book_meta_db->get_book_meta( $post->ID, 'url' );
 	
 		?>
-        <div class="book-meta-box-wrapper">
-            <p>
-                <label for="book_author">Author Name:</label>
-                <input type="text" id="book_author" name="book_author" value="<?php echo esc_attr( $author ); ?>" />
-            </p>
-            <p>
-                <label for="book_price">Price:</label>
-                <input type="text" id="book_price" name="book_price" value="<?php echo esc_attr( $price ); ?>" />
-            </p>
-            <p>
-                <label for="book_publisher">Publisher:</label>
-                <input type="text" id="book_publisher" name="book_publisher" value="<?php echo esc_attr( $publisher ); ?>" />
-            </p>
-            <p>
-                <label for="book_year">Year:</label>
-                <input type="text" id="book_year" name="book_year" value="<?php echo esc_attr( $year ); ?>" />
-            </p>
-            <p>
-                <label for="book_edition">Edition:</label>
-                <input type="text" id="book_edition" name="book_edition" value="<?php echo esc_attr( $edition ); ?>" />
-            </p>
-            <p>
-                <label for="book_url">URL:</label>
-                <input type="url" id="book_url" name="book_url" value="<?php echo esc_attr( $url ); ?>" />
-            </p>
-        </div>
-        <?php
+		<div class="book-meta-box-wrapper">
+			<p>
+				<label for="book_author">Author Name:</label>
+				<input type="text" id="book_author" name="book_author"  />
+			</p>
+			<p>
+				<label for="book_price">Price:</label>
+				<input type="text" id="book_price" name="book_price" />
+			</p>
+			<p>
+				<label for="book_publisher">Publisher:</label>
+				<input type="text" id="book_publisher" name="book_publisher" />
+			</p>
+			<p>
+				<label for="book_year">Year:</label>
+				<input type="text" id="book_year" name="book_year" />
+			</p>
+			<p>
+				<label for="book_edition">Edition:</label>
+				<input type="text" id="book_edition" name="book_edition" />
+			</p>
+			<p>
+				<label for="book_url">URL:</label>
+				<input type="url" id="book_url" name="book_url" />
+			</p>
+		</div>
+		<?php
     
 	}
 	
 	public function save_meta_box_data( $post_id ) {
-        // Check if our nonce is set and verify it.
-        if ( ! isset( $_POST['book_meta_box_nonce'] ) || ! wp_verify_nonce( $_POST['book_meta_box_nonce'], 'book_save_meta_box_data' ) ) {
-            return;
+         // Check if our nonce is set.
+		 if (!isset($_POST['book_meta_box_nonce'])) {
+            return $post_id;
         }
 
-        // Check if the user has permissions to save the data
-        if ( ! current_user_can( 'edit_post', $post_id ) ) {
-            return;
+        $nonce = $_POST['book_meta_box_nonce'];
+
+        // Verify that the nonce is valid.
+        if (!wp_verify_nonce($nonce, 'book_save_meta_box_data')) {
+            return $post_id;
         }
 
-        // Sanitize and save each field
-        if ( isset( $_POST['book_author'] ) ) {
-            update_post_meta( $post_id, '_book_author', sanitize_text_field( $_POST['book_author'] ) );
+        // If this is an autosave, our form has not been submitted, so we don't want to do anything.
+        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+            return $post_id;
         }
 
-        if ( isset( $_POST['book_price'] ) ) {
-            update_post_meta( $post_id, '_book_price', sanitize_text_field( $_POST['book_price'] ) );
+        // Check the user's permissions.
+        if ('book' === $_POST['post_type']) {
+            if (!current_user_can('edit_post', $post_id)) {
+                return $post_id;
+            }
         }
 
-        if ( isset( $_POST['book_publisher'] ) ) {
-            update_post_meta( $post_id, '_book_publisher', sanitize_text_field( $_POST['book_publisher'] ) );
-        }
+        // Sanitize user input and save the data to your custom table.
+        $book_meta_db = new Book_Meta_Database();
 
-        if ( isset( $_POST['book_year'] ) ) {
-            update_post_meta( $post_id, '_book_year', sanitize_text_field( $_POST['book_year'] ) );
-        }
-
-        if ( isset( $_POST['book_edition'] ) ) {
-            update_post_meta( $post_id, '_book_edition', sanitize_text_field( $_POST['book_edition'] ) );
-        }
-
-        if ( isset( $_POST['book_url'] ) ) {
-            update_post_meta( $post_id, '_book_url', esc_url( $_POST['book_url'] ) );
-        }
+		if (!empty($_POST['book_author'])) {
+			$book_meta_db->update_book_meta($post_id, 'author_name', sanitize_text_field($_POST['book_author']));
+		}
+		
+		if (!empty($_POST['book_price'])) {
+			$book_meta_db->update_book_meta($post_id, 'price', sanitize_text_field($_POST['book_price']));
+		}
+		
+		if (!empty($_POST['book_publisher'])) {
+			$book_meta_db->update_book_meta($post_id, 'publisher', sanitize_text_field($_POST['book_publisher']));
+		}
+		
+		if (!empty($_POST['book_year'])) {
+			$book_meta_db->update_book_meta($post_id, 'year', sanitize_text_field($_POST['book_year']));
+		}
+		
+		if (!empty($_POST['book_edition'])) {
+			$book_meta_db->update_book_meta($post_id, 'edition', sanitize_text_field($_POST['book_edition']));
+		}
+		
+		if (!empty($_POST['book_url'])) {
+			$book_meta_db->update_book_meta($post_id, 'url', esc_url_raw($_POST['book_url']));
+		}
+		
     }
-	
-
-	
 
 }

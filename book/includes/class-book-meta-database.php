@@ -57,11 +57,51 @@ class Book_Meta_Database {
         );
     
     }
+    public function update_book_meta($book_id, $meta_key, $meta_value) {
+        global $wpdb;
+        
+        // Check if the meta key already exists for the book_id
+        $existing = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT meta_id FROM {$wpdb->bookmeta} WHERE book_id = %d AND meta_key = %s",
+                $book_id,
+                $meta_key
+            )
+        );
+        
+        if ($existing) {
+            // If the meta key exists, update the existing record
+            $result = $wpdb->update(
+                $wpdb->bookmeta,
+                array('meta_value' => maybe_serialize($meta_value)),
+                array('meta_id' => $existing),
+                array('%s'),
+                array('%d')
+            );
+        } else {
+            // If the meta key does not exist, add a new record
+            $this->add_book_meta($book_id, $meta_key, $meta_value);
+        }
+    }
     
-
+   public function get_book_meta($book_id, $meta_key) {
+        global $wpdb;
+    
+        $meta_value = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT meta_value FROM $wpdb->bookmeta WHERE book_id = %d AND meta_key = %s",
+                $book_id,
+                $meta_key
+            )
+        );
+    
+        return maybe_unserialize($meta_value);
+    }
   
 }
 
-// $book_meta_db = new Book_Meta_Database();
-// $book_meta_db->register_book_meta_table();
-// $book_meta_db->add_book_meta(1, 'author_name', 'John Doe');
+//$book_meta_db = new Book_Meta_Database();
+//$book_meta_db->register_book_meta_table();
+//$book_meta_db->add_book_meta(1, 'author_name', 'John Doe');
+//$book_meta_db->update_book_meta(1, 'author_name', 'Testing');
+

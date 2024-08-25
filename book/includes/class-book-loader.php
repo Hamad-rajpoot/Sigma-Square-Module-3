@@ -80,6 +80,11 @@ class Book_Loader {
 	public function add_filter( $hook, $component, $callback, $priority = 10, $accepted_args = 1 ) {
 		$this->filters = $this->add( $this->filters, $hook, $component, $callback, $priority, $accepted_args );
 	}
+	
+	public function add_shortcode($tag, $object, $callback) {
+        add_shortcode($tag, array($object, $callback));
+    }
+
 
 	/**
 	 * A utility function that is used to register the actions and hooks into a single
